@@ -20,7 +20,9 @@ from typing import List, Optional
 
 import yaml
 
-DAGSTER_CLOUD_PEX_PATH = Path(__file__).parent.parent / "generated/gha/dagster-cloud.pex"
+DAGSTER_CLOUD_PEX_PATH = (
+    Path(__file__).parent.parent / "generated/gha/dagster-cloud.pex"
+)
 UPDATE_COMMENT_SCRIPT_PATH = Path(__file__).parent / "create_or_update_comment.py"
 
 
@@ -70,7 +72,9 @@ def get_locations(dagster_cloud_file) -> List[str]:
         workspace_contents = f.read()
     workspace_contents_yaml = yaml.safe_load(workspace_contents)
 
-    return [location["location_name"] for location in workspace_contents_yaml["locations"]]
+    return [
+        location["location_name"] for location in workspace_contents_yaml["locations"]
+    ]
 
 
 def run(args):
@@ -112,9 +116,7 @@ def deploy_pex(args, branch_deployment_name: Optional[str], build_method: str):
     args.insert(0, os.path.dirname(dagster_cloud_yaml))
     args = args + [f"--build-method={build_method}"]
     commit_hash = os.getenv("GITHUB_SHA")
-    git_url = (
-        f"{os.getenv('GITHUB_SERVER_URL')}/{os.getenv('GITHUB_REPOSITORY')}/tree/{commit_hash}"
-    )
+    git_url = f"{os.getenv('GITHUB_SERVER_URL')}/{os.getenv('GITHUB_REPOSITORY')}/tree/{commit_hash}"
     deployment_name = branch_deployment_name if branch_deployment_name else "prod"
     deployment_flag = f"--url={os.getenv('DAGSTER_CLOUD_URL')}/{deployment_name}"
     locations = get_locations(dagster_cloud_yaml)
@@ -146,6 +148,9 @@ def deploy_pex(args, branch_deployment_name: Optional[str], build_method: str):
     if returncode:
         notify(branch_deployment_name, locations, "failed")
     else:
+        os.environ[
+            "GITHUB_OUTPUT"
+        ] += f"branch_deployment_name={branch_deployment_name}"
         notify(branch_deployment_name, locations, "success")
     return returncode, output
 
